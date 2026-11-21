@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RunProgress — Dashboard Lari</title>
+<style>
+:root{--bg:#0b1020;--panel:#121a2b;--panel2:#172238;--text:#eef3ff;--muted:#9aa8c2;--line:#27344d;--accent:#7be0b2;--blue:#8bb8ff;--orange:#ffbf78;--red:#ff8f9a}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(1000px 500px at 15% -10%,#1a2b45 0,transparent 60%),var(--bg);font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:var(--text)}
+.wrap{max-width:1120px;margin:auto;padding:26px 18px 56px}.header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:24px}.brand{display:flex;gap:12px;align-items:center}.logo{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,var(--accent),#58a8e8);display:grid;place-items:center;color:#07131c;font-size:22px;font-weight:900}.brand h1{margin:0;font-size:22px}.brand p{margin:3px 0 0;color:var(--muted);font-size:13px}.btn{border:0;border-radius:11px;padding:11px 15px;background:var(--accent);color:#082019;font-weight:750;cursor:pointer}.btn.secondary{background:#24334d;color:var(--text);border:1px solid var(--line)}.btn.danger{background:#442533;color:#ffc2cc}.grid{display:grid;gap:14px}.stats{grid-template-columns:repeat(4,1fr);margin-bottom:14px}.card{background:linear-gradient(180deg,rgba(20,29,47,.96),rgba(16,24,39,.96));border:1px solid var(--line);border-radius:18px;padding:17px}.stat .label{font-size:13px;color:var(--muted)}.stat .value{font-size:27px;font-weight:800;margin:9px 0 4px;letter-spacing:-.5px}.stat .foot{font-size:12px;color:var(--muted)}.main{grid-template-columns:1.35fr .9fr}.section-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.section-title h2{margin:0;font-size:16px}.section-title small{color:var(--muted)}.chartbox{height:230px;position:relative}.chartbox canvas{width:100%;height:100%}.target{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}.target h2{font-size:16px;margin:0 0 5px}.target p{font-size:13px;color:var(--muted);margin:0}.big{font-size:26px;font-weight:850}.progress{height:10px;background:#27344b;border-radius:99px;overflow:hidden;margin:16px 0 9px}.progress>div{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--blue));border-radius:99px;transition:width .3s}.target-meta{display:flex;justify-content:space-between;color:var(--muted);font-size:12px}.formgrid{grid-template-columns:repeat(2,1fr)}label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}input,select,textarea{width:100%;border:1px solid var(--line);border-radius:10px;background:#0d1525;color:var(--text);padding:11px;font:inherit;outline:none}input:focus,select:focus,textarea:focus{border-color:var(--accent)}.field{margin-bottom:12px}.formcard{margin-top:14px}.full{grid-column:1/-1}.actions{display:flex;gap:8px;flex-wrap:wrap}.tablewrap{overflow:auto}.table{width:100%;border-collapse:collapse;min-width:650px}.table th,.table td{text-align:left;padding:12px 9px;border-bottom:1px solid var(--line);font-size:13px}.table th{color:var(--muted);font-weight:600}.type{display:inline-block;padding:5px 8px;border-radius:99px;background:#20324a;color:#b9d3ff;font-size:11px}.row-actions button{font-size:12px;border:1px solid var(--line);background:#1c2940;color:var(--text);border-radius:7px;padding:6px 8px;cursor:pointer;margin-right:4px}.empty{text-align:center;color:var(--muted);padding:30px}.note{font-size:12px;color:var(--muted);margin-top:14px;line-height:1.6}.footer{color:var(--muted);font-size:12px;text-align:center;margin-top:22px}.importrow{display:flex;gap:8px;flex-wrap:wrap}.hidden{display:none}
+@media(max-width:800px){.stats{grid-template-columns:repeat(2,1fr)}.main{grid-template-columns:1fr}.header{align-items:flex-start}.formgrid{grid-template-columns:1fr}.full{grid-column:auto}.stat .value{font-size:24px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="header">
+    <div class="brand"><div class="logo">↗</div><div><h1>RunProgress</h1><p>Dashboard perkembangan lari kamu</p></div></div>
+    <button class="btn" onclick="scrollToForm()">＋ Tambah lari</button>
+  </header>
+
+  <section class="grid stats">
+    <div class="card stat"><div class="label">Total jarak</div><div class="value" id="totalKm">0 km</div><div class="foot" id="totalRuns">0 sesi tercatat</div></div>
+    <div class="card stat"><div class="label">Pace rata-rata</div><div class="value" id="avgPace">—</div><div class="foot">Rata-rata pace keseluruhan</div></div>
+    <div class="card stat"><div class="label">Jarak terjauh</div><div class="value" id="longest">0 km</div><div class="foot">Dari seluruh aktivitas</div></div>
+    <div class="card stat"><div class="label">Waktu berlari</div><div class="value" id="totalTime">0j 0m</div><div class="foot">Total durasi</div></div>
+  </section>
+
+  <section class="grid main">
+    <div class="card">
+      <div class="section-title"><h2>Tren jarak</h2><small>6 aktivitas terakhir</small></div>
+      <div class="chartbox"><canvas id="distanceChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="section-title"><h2>Target Half Marathon</h2><small>21,1 km</small></div>
+      <div class="target"><div><p>Jarak terjauh saat ini</p><div class="big" id="hmLongest">0 km</div></div><div style="text-align:right"><p>Target waktu</p><div class="big">2:20:00</div></div></div>
+      <div class="progress"><div id="hmProgress"></div></div>
+      <div class="target-meta"><span id="progressText">0% menuju 21,1 km</span><span>21,1 km</span></div>
+      <p class="note">Progress ini hanya indikator jarak terjauh yang tercatat, bukan penilaian kesiapan lomba. Tingkatkan latihan bertahap dan perhatikan pemulihan.</p>
+    </div>
+  </section>
+
+  <section class="card formcard" id="formCard">
+    <div class="section-title"><h2 id="formTitle">Tambah aktivitas</h2><small>Data disimpan di browser perangkat ini</small></div>
+    <form id="runForm">
+      <input type="hidden" id="editId">
+      <div class="grid formgrid">
+        <div class="field"><label>Tanggal</label><input type="date" id="date" required></div>
+        <div class="field"><label>Jarak (km)</label><input type="number" id="distance" step="0.01" min="0.01" placeholder="Contoh: 5" required></div>
+        <div class="field"><label>Durasi (jam:menit:detik)</label><input type="text" id="duration" placeholder="00:32:15 atau 32:15" required></div>
+        <div class="field"><label>Jenis latihan</label><select id="type"><option>Easy Run</option><option>Long Run</option><option>Tempo</option><option>Interval</option><option>Recovery</option><option>Race / Test</option><option>Lainnya</option></select></div>
+        <div class="field"><label>Usaha (1–10)</label><select id="effort"><option value="">Tidak diisi</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select></div>
+        <div class="field"><label>Kondisi tubuh</label><select id="condition"><option value="">Tidak diisi</option><option>Segar</option><option>Normal</option><option>Lelah ringan</option><option>Lelah</option><option>Kurang pulih</option></select></div>
+        <div class="field full"><label>Catatan</label><textarea id="notes" rows="2" placeholder="Contoh: pernapasan nyaman, rute datar, cuaca..."></textarea></div>
+      </div>
+      <div class="actions"><button class="btn" type="submit" id="saveBtn">Simpan aktivitas</button><button class="btn secondary hidden" type="button" id="cancelEdit" onclick="resetForm()">Batal edit</button></div>
+    </form>
+  </section>
+
+  <section class="card" style="margin-top:14px">
+    <div class="section-title"><h2>Riwayat aktivitas</h2><div class="importrow"><button class="btn secondary" onclick="exportData()">Ekspor JSON</button><button class="btn secondary" onclick="document.getElementById('importFile').click()">Impor JSON</button><input class="hidden" type="file" id="importFile" accept=".json,application/json"></div></div>
+    <div class="tablewrap"><table class="table"><thead><tr><th>Tanggal</th><th>Jarak</th><th>Durasi</th><th>Pace</th><th>Jenis</th><th>Usaha</th><th>Aksi</th></tr></thead><tbody id="runRows"></tbody></table></div>
+    <div id="empty" class="empty">Belum ada aktivitas. Tambahkan sesi lari pertamamu di atas.</div>
+  </section>
+  <p class="footer">RunProgress • Data disimpan lokal di browser. Ekspor cadangan secara berkala agar data aman.</p>
+</div>
+<script>
+const KEY='runprogress_activities_v1';
+let runs=load();
+function load(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch{return []}}
+function save(){localStorage.setItem(KEY,JSON.stringify(runs));render()}
+function parseDuration(s){let p=s.trim().split(':').map(Number);if(p.some(n=>!Number.isFinite(n)||n<0))return null;if(p.length===2)return p[0]*60+p[1];if(p.length===3)return p[0]*3600+p[1]*60+p[2];return null}
+function durationFmt(sec){sec=Math.round(sec);let h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60;return h?`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:`${m}:${String(s).padStart(2,'0')}`}
+function paceFmt(secPerKm){if(!Number.isFinite(secPerKm)||secPerKm<=0)return'—';let m=Math.floor(secPerKm/60),s=Math.round(secPerKm%60);if(s===60){m++;s=0}return `${m}:${String(s).padStart(2,'0')}/km`}
+function dateFmt(d){if(!d)return'—';return new Date(d+'T00:00:00').toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'})}
+function render(){
+ runs.sort((a,b)=>b.date.localeCompare(a.date));
+ const total=runs.reduce((s,r)=>s+r.distance,0), secs=runs.reduce((s,r)=>s+r.seconds,0);
+ document.getElementById('totalKm').textContent=total.toFixed(2)+' km';
+ document.getElementById('totalRuns').textContent=runs.length+' sesi tercatat';
+ document.getElementById('avgPace').textContent=total?paceFmt(secs/total):'—';
+ document.getElementById('longest').textContent=(runs.length?Math.max(...runs.map(r=>r.distance)):0).toFixed(2)+' km';
+ document.getElementById('totalTime').textContent=Math.floor(secs/3600)+'j '+Math.floor(secs%3600/60)+'m';
+ let longest=runs.length?Math.max(...runs.map(r=>r.distance)):0, progress=Math.min(100,longest/21.1*100);
+ document.getElementById('hmLongest').textContent=longest.toFixed(2)+' km';
+ document.getElementById('hmProgress').style.width=progress+'%';
+ document.getElementById('progressText').textContent=progress.toFixed(1)+'% menuju 21,1 km';
+ let tbody=document.getElementById('runRows');tbody.innerHTML='';
+ runs.forEach(r=>{let tr=document.createElement('tr');tr.innerHTML=`<td>${dateFmt(r.date)}</td><td>${r.distance.toFixed(2)} km</td><td>${durationFmt(r.seconds)}</td><td>${paceFmt(r.seconds/r.distance)}</td><td><span class="type">${esc(r.type)}</span></td><td>${r.effort?esc(r.effort+'/10'):'—'}</td><td class="row-actions"><button onclick="editRun('${r.id}')">Edit</button><button onclick="deleteRun('${r.id}')">Hapus</button></td>`;tbody.appendChild(tr)});
+ document.getElementById('empty').style.display=runs.length?'none':'block';
+ drawChart();
+}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function drawChart(){let c=document.getElementById('distanceChart'),ctx=c.getContext('2d'),rect=c.getBoundingClientRect(),dpr=window.devicePixelRatio||1;c.width=rect.width*dpr;c.height=rect.height*dpr;ctx.scale(dpr,dpr);let w=rect.width,h=rect.height;ctx.clearRect(0,0,w,h);let data=runs.slice(0,6).reverse();let pad={l:32,r:12,t:14,b:34};let max=Math.max(1,...data.map(x=>x.distance));ctx.font='11px system-ui';ctx.strokeStyle='#283650';ctx.fillStyle='#94a4bf';for(let i=0;i<=4;i++){let y=pad.t+(h-pad.t-pad.b)*i/4;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();ctx.fillText((max*(1-i/4)).toFixed(1),3,y+4)}if(!data.length){ctx.fillText('Grafik akan muncul setelah data ditambahkan',pad.l+8,h/2);return}let plotW=w-pad.l-pad.r,plotH=h-pad.t-pad.b,step=plotW/data.length,bw=Math.min(28,step*.56);data.forEach((d,i)=>{let bh=d.distance/max*plotH,x=pad.l+i*step+(step-bw)/2,y=pad.t+plotH-bh;ctx.fillStyle='#7be0b2';ctx.beginPath();ctx.roundRect(x,y,bw,bh,5);ctx.fill();ctx.fillStyle='#dce7f8';ctx.textAlign='center';ctx.fillText(d.distance.toFixed(1),x+bw/2,y-5);ctx.fillStyle='#94a4bf';ctx.fillText(new Date(d.date+'T00:00:00').toLocaleDateString('id-ID',{day:'2-digit',month:'short'}),x+bw/2,h-10)})}
+document.getElementById('runForm').addEventListener('submit',e=>{e.preventDefault();let dist=Number(document.getElementById('distance').value),seconds=parseDuration(document.getElementById('duration').value);if(!(dist>0)||seconds===null||seconds<=0){alert('Periksa jarak dan format durasi. Gunakan mm:ss atau hh:mm:ss.');return}let id=document.getElementById('editId').value;let obj={id:id||crypto.randomUUID(),date:document.getElementById('date').value,distance:dist,seconds,type:document.getElementById('type').value,effort:document.getElementById('effort').value,condition:document.getElementById('condition').value,notes:document.getElementById('notes').value};if(id){runs=runs.map(r=>r.id===id?obj:r)}else runs.push(obj);save();resetForm()});
+function editRun(id){let r=runs.find(x=>x.id===id);if(!r)return;document.getElementById('editId').value=r.id;document.getElementById('date').value=r.date;document.getElementById('distance').value=r.distance;document.getElementById('duration').value=durationFmt(r.seconds);document.getElementById('type').value=r.type;document.getElementById('effort').value=r.effort;document.getElementById('condition').value=r.condition;document.getElementById('notes').value=r.notes;document.getElementById('formTitle').textContent='Edit aktivitas';document.getElementById('saveBtn').textContent='Simpan perubahan';document.getElementById('cancelEdit').classList.remove('hidden');scrollToForm()}
+function deleteRun(id){if(confirm('Hapus aktivitas ini?')){runs=runs.filter(r=>r.id!==id);save()}}
+function resetForm(){document.getElementById('runForm').reset();document.getElementById('editId').value='';document.getElementById('date').value=new Date().toISOString().slice(0,10);document.getElementById('formTitle').textContent='Tambah aktivitas';document.getElementById('saveBtn').textContent='Simpan aktivitas';document.getElementById('cancelEdit').classList.add('hidden')}
+function scrollToForm(){document.getElementById('formCard').scrollIntoView({behavior:'smooth',block:'start'})}
+function exportData(){let blob=new Blob([JSON.stringify(runs,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='runprogress-backup.json';a.click();URL.revokeObjectURL(a.href)}
+document.getElementById('importFile').addEventListener('change',e=>{let f=e.target.files[0];if(!f)return;let reader=new FileReader();reader.onload=()=>{try{let d=JSON.parse(reader.result);if(!Array.isArray(d)||!d.every(r=>r.date&&Number(r.distance)>0&&Number(r.seconds)>0))throw Error();if(confirm('Impor data akan menggabungkan aktivitas dengan data yang ada. Lanjut?')){let ids=new Set(runs.map(r=>r.id));d.forEach(r=>{if(!ids.has(r.id))runs.push(r)});save();alert('Data berhasil diimpor.')} }catch{alert('File JSON tidak valid atau format tidak sesuai.')}};reader.readAsText(f);e.target.value=''});
+window.addEventListener('resize',drawChart);document.getElementById('date').value=new Date().toISOString().slice(0,10);render();
+</script>
+</body>
+</html>
